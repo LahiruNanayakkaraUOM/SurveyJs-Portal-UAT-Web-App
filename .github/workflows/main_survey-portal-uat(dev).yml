@@ -64,4 +64,4 @@ jobs:
         with:
           app-name: "survey-portal-uat"
           slot-name: "dev"
-          package: "dist"
+          package: .
