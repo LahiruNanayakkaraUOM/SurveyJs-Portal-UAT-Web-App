@@ -35,6 +35,9 @@ jobs:
           name: node-app
           path: dist
 
+      - name: List files after build
+        run: ls -R
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -61,4 +64,4 @@ jobs:
         with:
           app-name: "survey-portal-uat"
           slot-name: "dev"
-          package: .
+          package: "dist"
