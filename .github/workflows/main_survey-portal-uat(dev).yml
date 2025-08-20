@@ -34,8 +34,10 @@ jobs:
         with:
           name: node-app
           path: |
-            ./dist/**
-            ./web.config
+            dist/assets/
+            dist/index.html
+            dist/vite.svg
+            web.config
 
       - name: List files after build
         run: ls -R
