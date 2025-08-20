@@ -34,7 +34,7 @@ jobs:
         with:
           name: node-app
           path: |
-            dist/*
+            dist/**
             web.config
 
       - name: List files after build
