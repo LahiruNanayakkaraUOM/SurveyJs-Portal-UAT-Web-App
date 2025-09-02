@@ -1,4 +1,12 @@
 body{
   margin: 0;
   padding: 0;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  font-size: small;
+  padding: 10px 0;
 }

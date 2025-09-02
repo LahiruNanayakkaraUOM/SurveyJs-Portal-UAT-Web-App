@@ -1,62 +1,94 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SurveyRenderer from "./SurveyRenderer";
+import { fetchSurveyInfo } from "../api/fetchSurveyInfo";
+import { fetchLicenseBlocks } from "../api/fetchLicenseBlocks";
+import { api } from "../api/fetchScheme";
 
 const Home = () => {
-  const [surveyJson, setSurveyJson] = useState({});
+  const [surveyJson, setSurveyJson] = useState(null);
+  const [surveyInfo, setSurveyInfo] = useState(null);
+  const [surveyQuestions, setSurveyQuestions] = useState(null);
   const [originUrl, setOriginUrl] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { slogan } = useParams();
+  const navigate = useNavigate();
+
+  const newOrigin =
+    "https://survey-portal-uat-gxchbpcrc4fkbze3.uksouth-01.azurewebsites.net/survey/lahiru-training-bc";
 
   useEffect(() => {
     const getSchema = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_AZURE_SURVEYJSON_FUNCTION_URL}?code=${
-            import.meta.env.VITE_AZURE_SURVEYJSON_FUNCTION_API_CODE
-          }&slogan=${slogan}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          console.log(data);
+        const response = await api.get("", { params: { slogan } });
+        if (response.data) {
+          const data = response.data;
           const schema = data?.content;
-          console.log(schema);
           setSurveyJson(schema);
           setOriginUrl(data?.originUrl);
+        } else if (response.status === 404) {
+          return navigate("/not-found");
         }
-        setLoading(false);
       } catch (error) {
         console.log(error);
-        setLoading(false);
+        if (error.response && error.response.status === 404) {
+          return navigate("/not-found");
+        }
+        setError(error);
       }
     };
+
+    const getSurveyInfo = async () => {
+      try {
+        const surveyInfo = await fetchSurveyInfo(newOrigin);
+        if (surveyInfo) {
+          console.log(surveyInfo);
+          setSurveyInfo(surveyInfo);
+        } else {
+          console.warn("No survey info found");
+        }
+      } catch (error) {
+        console.error(error);
+        setError(error);
+      }
+    };
+
+    const getLicenseBlocks = async () => {
+      try {
+        const surveyQuestions = await fetchLicenseBlocks(newOrigin);
+        if (surveyQuestions) {
+          console.log(surveyQuestions);
+          setSurveyQuestions(surveyQuestions);
+        } else {
+          console.warn("No survey questions found");
+        }
+      } catch (error) {
+        console.error(error);
+        setError(error);
+      }
+    };
+
     getSchema();
+    getSurveyInfo();
+    getLicenseBlocks();
+    setLoading(false);
   }, []);
   return (
     <>
       {loading ? (
         <p></p>
-      ) : surveyJson && originUrl ? (
+      ) : surveyJson && originUrl && surveyInfo && surveyQuestions ? (
         <SurveyRenderer
           schema={surveyJson}
           originURL={originUrl}
           surveySlogan={slogan}
+          surveyInfo={surveyInfo}
+          surveyQuestionJSON={surveyQuestions}
         />
       ) : (
-        <p>Something went wrong</p>
+        error && <div className="error">{error}</div>
       )}
-      <div
-        style={{ height: "10%", justifySelf: "center", fontSize: "12px" }}
-        id="banner"
-      >
-        <span>GYDE365 by&nbsp;&nbsp;</span>
-        <img
-          alt="Seer 365"
-          src="https://gyde365-discover.powerappsportals.com/FooterLogo.png"
-          style={{ height: "20px" }}
-        />
-        <span>&nbsp;&nbsp;Seer 365</span>
-      </div>
     </>
   );
 };

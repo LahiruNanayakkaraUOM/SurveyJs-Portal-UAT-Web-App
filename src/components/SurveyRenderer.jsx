@@ -4,8 +4,16 @@ import { useEffect, useState } from "react";
 import { Model } from "survey-core";
 import { Survey } from "survey-react-ui";
 import "survey-core/survey-core.css";
+import { fetchDefaultStyles } from "../api/fetchDefaultStyles";
+import { fetchFontStyles } from "../api/fetchFontStyles";
 
-const SurveyRenderer = ({ schema, originURL, surveySlogan }) => {
+const SurveyRenderer = ({
+  schema,
+  originURL,
+  surveySlogan,
+  surveyInfo,
+  surveyQuestionJSON,
+}) => {
   const model = schema ? JSON.parse(schema) : {};
   const survey = new Model(model);
   const showTitle = survey.showTitle;
@@ -20,8 +28,11 @@ const SurveyRenderer = ({ schema, originURL, surveySlogan }) => {
           `${import.meta.env.VITE_AZURE_BLOB_URL}/${surveySlogan}/index.js`
         );
         if (fnModule) {
-          await fnModule.fetchFontStyles(surveySlogan);
-          await fnModule.fetchDefaultStyle(originURL);
+          await fetchDefaultStyles(originURL);
+          await fetchFontStyles(surveySlogan);
+          fnModule.setSurveyInfo(surveyInfo);
+          fnModule.setSurvey(survey);
+          fnModule.setLicenseBlocks(surveyQuestionJSON);
           setFnModule(fnModule);
           setLoading(false);
         }
@@ -44,7 +55,7 @@ const SurveyRenderer = ({ schema, originURL, surveySlogan }) => {
 
   if (fnModule) {
     survey.onComplete.add(async (sender, options) => {
-      await fnModule.saveSurveyResults(survey, sender, options, originURL);
+      await fnModule.saveSurveyResults(sender, options);
     });
   }
 
@@ -56,7 +67,7 @@ const SurveyRenderer = ({ schema, originURL, surveySlogan }) => {
     survey.endLoading();
     survey.showTitle = showTitle;
   }
-  return !error ? <Survey model={survey} /> : <div>Error: {error}</div>;
+  return !error ? <Survey model={survey} /> : <div className="error">{error}</div>;
 };
 
 export default SurveyRenderer;
