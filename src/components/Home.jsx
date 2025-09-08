@@ -15,8 +15,9 @@ const Home = () => {
   const { slogan } = useParams();
   const navigate = useNavigate();
 
-  const newOrigin =
-    "https://survey-portal-uat-gxchbpcrc4fkbze3.uksouth-01.azurewebsites.net/survey/lahiru-training-bc";
+  // const newOrigin =
+  //   "https://survey-portal-uat-gxchbpcrc4fkbze3.uksouth-01.azurewebsites.net/survey/lahiru-training-bc";
+  const newOrigin = window.location.href;
 
   useEffect(() => {
     const getSchema = async () => {
